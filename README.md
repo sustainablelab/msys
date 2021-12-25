@@ -1,3 +1,9 @@
+From the MSYS2 website:
+
+> MSYS2 is a collection of tools and libraries providing you with
+> an easy-to-use environment for building, installing and running
+> native Windows software.
+
 - [Install MSYS2](README.md#install-msys2)
 - [Set up shortcuts to launch shells from PowerShell](README.md#set-up-shortcuts-to-launch-shells-from-powershell)
 - [Install more packages](README.md#install-more-packages)
@@ -73,32 +79,28 @@ pacman -Su
 
 # Set up shortcuts to launch shells from PowerShell
 
-There are two shells:
+MSYS2 provides three *subsystems*: `msys2`, `mingw32`, and
+`mingw64`.
+
+- I use subsystems `msys2` and `mingw64`.
+- I make PowerShell aliases named `msys` and `mingw`
+    - the aliases launch the **shell** associated with the
+      subsystem
+    - `msys` launches the shell for `msys2`
+    - `mingw` launches the shell for `mingw64`
+
+Use `msys` to manage packages and `mingw` for programming:
 
 - `msys`
-    - use this for package management and POSIX stuff
+    - I only use this environment for maintenance
+    - use this environment for package management and POSIX stuff
 - `mingw`
-    - use this for Windows builds (like what we's gonna do with IMGUI)
+    - most of the time I am working in this environment
+    - use this environment for building Windows executables
+        - e.g., building an application that uses IMGUI
     - stuff runs faster from this shell, e.g., Python
 
-Instead of running from Desktop shortcuts, edit the PowerShell
-Profile and create aliases to launch the two shells from
-PowerShell:
-
-```
-Set-Alias -Name msys -Value "C:\msys64\msys2.exe"
-Set-Alias -Name mingw -Value "C:\msys64\mingw64.exe"
-```
-
-This works but it may cause problems because it bypasses the
-`msys2_shell.cmd` that triggers when clicking the Desktop
-shortcuts, so it's not an identical way to run the shells because
-some initialization steps will not run.
-
-To avoid confusion in the future, the right way is to run the
-shell and pass the desired shell type as a flag. This requires a
-slightly fancier version of the `Set-Alias` command, passing a
-function name to `-Value` instead of a string:
+Set up the aliases this way:
 
 ```
 function RunMsys {
@@ -111,6 +113,25 @@ function RunMingw {
 }
 Set-Alias -Name mingw -Value RunMingw
 ```
+
+Don't set up the aliases like this:
+
+```PowerShell
+Set-Alias -Name msys -Value "C:\msys64\msys2.exe"
+Set-Alias -Name mingw -Value "C:\msys64\mingw64.exe"
+```
+
+This works but it may cause problems because it bypasses the
+`msys2_shell.cmd` that triggers when clicking the Desktop
+shortcuts, so it's not an identical way to run the shells because
+some initialization steps will not run.
+
+**The right way is to run the shell and pass the desired shell type
+as a flag.**
+
+This is why I create PowerShell functions and pass the function
+name as the `-Value` to the `Set-Alias` command (instead of
+passing the string path to the `.exe`).
 
 # Install more packages
 
