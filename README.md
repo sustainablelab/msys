@@ -60,6 +60,28 @@ From the MSYS2 website:
           `msys` shell to check signatures in the future
 
 - run installer
+- check the installation is OK:
+    - MSYS will launch a shell
+    - `ls -a` here: MSYS should have installed a default
+      `.bashrc`
+    - if there is no `.bashrc` file, something is probably wrong
+      with the `$HOME` environment variable
+- I ran into this on a work laptop:
+    - Allegro Cadence programs create an environment variable
+      named `$HOME` (for no good reason)
+        - checking `$HOME` from PowerShell does not show this
+          modified value
+        - the only way to see it is to open the Windows GUI that
+          shows the Environment Variables
+        - there should not be a `HOME` variable shown there
+            - if there is a `HOME`, it was likely put there by a
+              program (like one of the Allegro Cadence programs)
+- the fix is simple:
+    - delete the `$HOME` environment variable (close any
+      offending programs first, like the Allegro Cadence
+      programs)
+    - run the `msys` uninstaller
+    - install `msys` again
 
 Open the MSYS2 `msys` shell and run the package manager to update
 system packages:
@@ -142,8 +164,11 @@ Install these packages:
 ```msys-pacman-S
 pacman -S make
 pacman -S git
-pacman -S gcc
+pacman -S subversion
+pacman -S python
 pacman -S man
+pacman -S pkgconf
+pacman -S gcc
 ```
 
 ## Install Vim
@@ -162,6 +187,109 @@ this:
 cd .vim
 git submodule init
 git submodule update
+```
+
+On my desktop, the color for `highlight SpellBad` is a beautiful
+light purple:
+
+```vim
+highlight SpellBad cterm=underline,bold ctermfg=4
+```
+
+But on Raspberry Pi and some laptops, this same color shows up as
+an illegible dark blue. I change this to light blue by changing
+the `4` to a `6`:
+
+```vim
+highlight SpellBad cterm=underline,bold ctermfg=6
+```
+
+## minttyrc
+
+Some of the mintty settings also affect Vim appearance.
+
+By default, there is no `.minttyrc` file. Create the file and put
+this in it. This makes the cursor a non-blinking block, lets me
+use `Ctrl+Shift+T` to adjust transparency, and makes the terminal
+colors nice (these colors have no effect on Vim).
+
+```minttyrc
+Font=Consolas
+ThemeFile=dracula
+CursorType=block
+BoldAsFont=yes
+Locale=en_US
+Charset=UTF-8
+FontSmoothing=full
+PgUpDnScroll=yes
+Term=xterm
+BellType=0
+CursorBlinks=no
+Language=en_US
+CtrlShiftShortcuts=yes
+
+# User-defined shortcuts (KeyFunctions=)
+KeyFunctions=F1:`explorer "C:\Users\mike\Downloads"`;\
+             F8:`echo -n some-text-I-need-to-write-a-lot`;
+```
+
+The shortcuts show an example of setting up keybindings. In this
+example `F1` opens the Windows explorer in the Downloads folder,
+and `F8` prints some frequently used text.
+
+Don't try to run GNU utilities with a `mintty` shortcut (like a
+shortcut that runs `vim` or `man`). But it seems OK to call a
+`.exe` that quickly returns, like the one I show. Use the `\` to
+line break the `KeyFunctions`.
+
+## bashrc
+
+I make few changes to the default `.bashrc`:
+
+```bash
+set -o vi
+```
+
+I make `rm` and `mv` interactive:
+
+```bash
+alias rm='rm -i'
+alias mv='mv -i'
+```
+
+And I make `ls` print in color (`--color`) with classification markings
+(`-F`:  `*` indicates executable and `/` indicates folder)
+
+```bash
+alias ls='ls -F --color'
+```
+
+And `lsv` for vertical list, with `-h` for human-readable file
+sizes and `-l` for the vertical (long) listing:
+
+```bash
+alias lsv='ls -hlF --color'
+```
+
+And I set some aliases to call Windows executables from a Vim
+terminal. For example, this lets me start VisualStudio from a Vim
+terminal:
+
+```bash
+devenv="/c/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/devenv.exe"
+export devenv
+alias devenv='"$devenv"'
+```
+
+And export variables so it's easy to get to certain files or
+folders. For example, this makes it easy to access my PowerShell
+Profile from `mintty` or `Vim`:
+
+```bash
+# from mintty: vim $profile
+# from vim: :e $profile
+profile="/c/Users/mike/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+export profile
 ```
 
 ## Install Python
