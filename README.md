@@ -99,6 +99,144 @@ Run the `-u` flag again to make sure everything is installed:
 pacman -Su
 ```
 
+Read more about package management here:
+
+https://www.msys2.org/docs/package-management/
+
+List all the top-level pacman flags (capital letters):
+
+```
+pacman -h
+```
+
+List the lower-level (lowercase letter) flags for any top-level
+(capital letter) pacman flag:
+
+```
+pacman -S --help
+pacman -Q --help
+pacman -F --help
+```
+
+For example, `-S` and `-F` both have a `-y` flag, but `-Q` does
+not have a `-y` flag.
+
+The help for `pacman -S` or `pacman -F` says:
+
+```
+-y, --refresh        download fresh package databases from the server
+```
+
+So `pacman -Fy` and `pacman -Sy` both update the local copy of the package
+databases:
+
+```
+$ pacman -Fy
+:: Synchronizing package databases...
+ mingw32                 4.9 MiB  2.84 MiB/s 00:02 [#####################] 100%
+ mingw64                 4.9 MiB  3.54 MiB/s 00:01 [#####################] 100%
+ ucrt64                  5.0 MiB  3.36 MiB/s 00:01 [#####################] 100%
+ clang64                 4.6 MiB  2.61 MiB/s 00:02 [#####################] 100%
+ msys                 1061.7 KiB   427 KiB/s 00:02 [#####################] 100%
+error: failed retrieving file 'msys.files' from downloads.sourceforge.net : The requested URL returned error: 404
+```
+
+```
+$ pacman -Sy
+:: Synchronizing package databases...
+ mingw32 is up to date
+ mingw64 is up to date
+ ucrt64 is up to date
+ clang64 is up to date
+ msys is up to date
+error: failed retrieving file 'msys.db' from downloads.sourceforge.net : The requested URL returned error: 404
+```
+
+Some examples. I use `emacs` as a package name search term in
+these examples.
+
+
+Search for a package in the repositories:
+
+```
+$ pacman -Ss emacs
+mingw32/mingw-w64-i686-emacs 28.1-1
+    The extensible, customizable, self-documenting, real-time display editor (mingw-w64)
+mingw32/mingw-w64-i686-emacs-pdf-tools-server 0.91-1
+    Emacs support library for PDF files
+mingw32/mingw-w64-i686-liberime 0.0.6-1
+    An emacs dynamic module provide librime bindings for emacs (mingw-w64)
+mingw64/mingw-w64-x86_64-emacs 28.1-1 [installed]
+    The extensible, customizable, self-documenting, real-time display editor (mingw-w64)
+mingw64/mingw-w64-x86_64-emacs-pdf-tools-server 0.91-1
+    Emacs support library for PDF files
+mingw64/mingw-w64-x86_64-liberime 0.0.6-1
+    An emacs dynamic module provide librime bindings for emacs (mingw-w64)
+ucrt64/mingw-w64-ucrt-x86_64-liberime 0.0.6-1
+    An emacs dynamic module provide librime bindings for emacs (mingw-w64)
+clang64/mingw-w64-clang-x86_64-liberime 0.0.6-1
+    An emacs dynamic module provide librime bindings for emacs (mingw-w64)
+msys/cmake-emacs 3.22.1-2
+    A cross-platform open-source make system (Emacs mode)
+msys/emacs 27.2-1 (editors)
+    The extensible, customizable, self-documenting, real-time display editor (msys2)
+msys/ninja-emacs 1.10.2-1
+    Ninja is a small build system with a focus on speed (Emacs mode)
+```
+
+Narrow that search:
+
+```
+$ pacman -Ss 64-emacs
+mingw64/mingw-w64-x86_64-emacs 28.1-1 [installed]
+    The extensible, customizable, self-documenting, real-time display editor (mingw-w64)
+mingw64/mingw-w64-x86_64-emacs-pdf-tools-server 0.91-1
+    Emacs support library for PDF files
+```
+
+*Note the already installed package shows as `[installed]`.*
+
+Search for a package in the installed packages:
+
+```
+$ pacman -Qs emacs
+local/mingw-w64-x86_64-emacs 28.1-1
+    The extensible, customizable, self-documenting, real-time display editor (mingw-w64)
+```
+
+Use `pactree` to list dependencies (have to use full package name
+for this one):
+
+```
+$ pactree mingw-w64-x86_64-emacs
+mingw-w64-x86_64-emacs
+├─mingw-w64-x86_64-universal-ctags-git
+│ ├─mingw-w64-x86_64-gcc-libs
+...
+│ ├─mingw-w64-x86_64-zlib
+│ └─mingw-w64-x86_64-libwinpthread-git
+└─mingw-w64-x86_64-libwinpthread-git provides mingw-w64-x86_64-libwinpthread
+```
+
+
+Find out which package a file belongs to (note this particular
+command must be run from `mingw`, not `msys` because `msys`
+doesn't know what `emacs.exe` is):
+
+```
+$ pacman -Qo emacs.exe
+/mingw64/bin/emacs.exe is owned by mingw-w64-x86_64-emacs 28.1-1
+```
+
+To run that same command from `msys` I have to give the full
+path to the file in question:
+
+```
+$ pacman -Qo /mingw64/bin/emacs.exe
+/mingw64/bin/emacs.exe is owned by mingw-w64-x86_64-emacs 28.1-1
+```
+
+
 # Set up shortcuts to launch shells from PowerShell
 
 MSYS2 provides three *subsystems*: `msys2`, `mingw32`, and
@@ -170,6 +308,81 @@ pacman -S man
 pacman -S pkgconf
 pacman -S gcc
 ```
+
+## Install Emacs
+
+To install Emacs:
+
+```bash
+pacman -S mingw-w64-x86_64-emacs
+```
+
+To launch Emacs:
+
+```bash
+emacs
+```
+
+### Emacs in terminal mode on Windows
+
+Don't run Emacs in terminal mode. But here are some instructions
+to try it once.
+
+By default, Emacs runs in GUI mode. Use flag `-nw` to run in
+terminal mode.
+
+```bash
+winpty emacs -Q -nw
+```
+
+So there are a few extra things going on there.
+
+First, the `-Q` flag: I add the `-Q` flag to start emacs in the
+vanilla mode (no config) for faster startup to quickly check
+terminal behavior (I have spacemacs installed, and while it
+starts up, all other terminal applications slow down, plus the
+terminal "eats" a lot of Ctrl-key combinations, crucially the
+C-x/C-c for quit, so vanilla mode is the way to go for testing
+terminal mode).
+
+Now what is the `winpty` for? Trying to launch terminal mode
+without the `winpty`, I get this error:
+
+```bash
+$ emacs -Q -nw
+emacs: standard input is not a tty
+```
+
+What is a `tty`? That stands for "teletype". No one uses
+teletypes anymore. A teletype is a terminal attached to the
+computer's serial port. This serial terminal has a keyboard for
+sending input to the computer, and it has a printer for receiving
+output from the computer.
+
+Serial port devices are sometimes treated as a `tty`. But for
+a terminal user interface, usually the terminal it running on the
+computer, not attached to a serial port. This kind of terminal is
+a *terminal emulator*.
+
+The `bash` shell in `mingw` or `msys` is running in `mintty`.
+This is a *terminal emulator*. Terminal emulators are sometimes
+called `pty`, sometimes `tty`, but if it's a terminal emulator,
+these abbreviation names are used interchangeably. `PuTTY` is a
+terminal emulator.
+
+I can launch any executable from my terminal emulator. At that
+point the OS is going to execute the executable. It doesn't
+matter that I launched it from a terminal.
+
+The issue launching emacs in terminal mode is that this `-nw`
+flag expects a terminal. In other words, I need to open a
+terminal emulator to act as terminal *to the executable*. On
+Windows, this means the terminal emulator has to present itself
+as a "console".
+
+I don't know if `mintty` can do this. If it can, I don't know how
+to do it. But `winpty`, yet another terminal emulator, does
+present itself as a console.
 
 ## Install Vim
 
