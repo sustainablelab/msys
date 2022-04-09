@@ -325,8 +325,9 @@ emacs
 
 ### Emacs in terminal mode on Windows
 
-Don't run Emacs in terminal mode. But here are some instructions
-to try it once.
+**Don't run Emacs in terminal mode.**
+
+*But here are some instructions to try terminal mode once.*
 
 By default, Emacs runs in GUI mode. Use flag `-nw` to run in
 terminal mode.
@@ -335,23 +336,54 @@ terminal mode.
 winpty emacs -Q -nw
 ```
 
-So there are a few extra things going on there.
+What is the `winpty` and the `-Q`?
 
-First, the `-Q` flag: I add the `-Q` flag to start emacs in the
-vanilla mode (no config) for faster startup to quickly check
-terminal behavior (I have spacemacs installed, and while it
-starts up, all other terminal applications slow down, plus the
-terminal "eats" a lot of Ctrl-key combinations, crucially the
-C-x/C-c for quit, so vanilla mode is the way to go for testing
-terminal mode).
+#### emacs -Q
 
-Now what is the `winpty` for? Trying to launch terminal mode
-without the `winpty`, I get this error:
+The `-Q` flag starts Emacs in the **vanilla mode**.
+That means it is out-of-the-box Emacs with no customizations.
+Disabling all customization is a good idea when trying out
+terminal mode.
+
+- **vanilla** means ignore any config in `.emacs.d/`
+    - Emacs starts up faster -- no checking for packages
+    - that is especially important when running in terminal
+      mode, especially with **spacemacs** which checks for a
+      lot of packages
+    - during this package checking, if I am in terminal mode,
+      the keyboard input to all other terminal applications
+      is ridiculously slow, like 1-second per keystroke
+- **vanilla** means the menubar is there
+    - the terminal "eats" a lot of Ctrl-key combinations
+    - crucially C-c is intercepted by the terminal
+        - so I cannot use C-x/C-c for quit
+        - the only other way I know how to quit is `File -> Quit`
+    - but if I am not in vanilla emacs, the menubar is turned off
+      (because no experience Emacs user uses the menubar)
+    - then the only way to quit Emacs is to kill the entire
+      window/process
+
+#### winpty
+
+Try to launch terminal mode without the `winpty`. I get this
+error:
 
 ```bash
 $ emacs -Q -nw
 emacs: standard input is not a tty
 ```
+
+From:
+
+https://github.com/mintty/mintty/wiki/Tips#inputoutput-interaction-with-alien-programs
+
+> As a workaround on older versions of Cygwin or Windows, you can
+> use [winpty](https://github.com/rprichard/winpty) as a wrapper
+> to invoke the Windows program.
+>
+> The same workaround handles interrupt signals, particularly
+> Control+C, which does not otherwise function as expected with
+> non-cygwin programs.
 
 What is a `tty`? That stands for "teletype". No one uses
 teletypes anymore. A teletype is a terminal attached to the
@@ -359,30 +391,33 @@ computer's serial port. This serial terminal has a keyboard for
 sending input to the computer, and it has a printer for receiving
 output from the computer.
 
-Serial port devices are sometimes treated as a `tty`. But for
-a terminal user interface, usually the terminal it running on the
-computer, not attached to a serial port. This kind of terminal is
-a *terminal emulator*.
+Sometimes operating systems communicate with serial port devices
+as if they are a `tty` (an external device sending text in and
+expecting text back). But when people talk about a `tty` that is
+running *on* the computer, they really mean a *terminal
+emulator*, not an external machine communicating over the serial
+port. In this usage, the terms `tty`, terminal, `pty`, and
+terminal emulator are all interchangeable.
 
-The `bash` shell in `mingw` or `msys` is running in `mintty`.
-This is a *terminal emulator*. Terminal emulators are sometimes
-called `pty`, sometimes `tty`, but if it's a terminal emulator,
-these abbreviation names are used interchangeably. `PuTTY` is a
-terminal emulator.
+The `bash` shells in `MinGW`, `MSYS`, and `Cygwin` all run in the
+`mintty` terminal emulator. Some other terminal emulators are
+`PuTTY` and `winpty`.
 
-I can launch any executable from my terminal emulator. At that
-point the OS is going to execute the executable. It doesn't
-matter that I launched it from a terminal.
+So what? I can *launch* any executable from a terminal emulator.
+At that point the OS is going to execute the executable. It
+doesn't matter that I launched it from a terminal.
 
-The issue launching emacs in terminal mode is that this `-nw`
+The issue launching Emacs in terminal mode is that this `-nw`
 flag expects a terminal. In other words, I need to open a
-terminal emulator to act as terminal *to the executable*. On
-Windows, this means the terminal emulator has to present itself
-as a "console".
+terminal emulator to act as a terminal *to the executable*.
+
+**On Windows, this means the terminal emulator has to present
+itself as a "console".**
 
 I don't know if `mintty` can do this. If it can, I don't know how
 to do it. But `winpty`, yet another terminal emulator, does
-present itself as a console.
+present itself as a console. The trouble with `winpty` is that it
+eats the interrupt signals (like Control+C).
 
 ## Install Vim
 
